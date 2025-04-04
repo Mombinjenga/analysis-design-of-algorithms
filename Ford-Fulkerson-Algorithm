@@ -1,0 +1,102 @@
+using System;
+using System.Collections.Generic;
+
+public class MaxFlow
+{
+    private int vertices;
+    private int[,] capacity;
+
+    public MaxFlow(int vertices)
+    {        this.vertices = vertices;
+        capacity = new int[vertices, vertices];
+    }
+
+    public void AddEdge(int u, int v, int cap)
+    {
+        capacity[u, v] = cap;
+    }
+
+    private bool BFS(int[,] residualCapacity, int source, int sink, int[] parent)
+    {
+        bool[] visited = new bool[vertices];
+        Queue<int> queue = new Queue<int>();
+        queue.Enqueue(source);
+        visited[source] = true;
+        parent[source] = -1;
+
+        while (queue.Count > 0)
+        {
+            int u = queue.Dequeue();
+
+            for (int v = 0; v < vertices; v++)
+            {
+                if (!visited[v] && residualCapacity[u, v] > 0)
+                {
+                    queue.Enqueue(v);
+                    parent[v] = u;
+                    visited[v] = true;
+                    if (v == sink)
+                    {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    public int FordFulkerson(int source, int sink)
+    {
+        int u, v;
+        int[,] residualCapacity = new int[vertices, vertices];
+
+        for (u = 0; u < vertices; u++)
+            for (v = 0; v < vertices; v++)
+                residualCapacity[u, v] = capacity[u, v];
+
+        int[] parent = new int[vertices];
+        int maxFlow = 0;
+
+        while (BFS(residualCapacity, source, sink, parent))
+        {
+            int pathFlow = int.MaxValue;
+            for (v = sink; v != source; v = parent[v])
+            {
+                u = parent[v];
+                pathFlow = Math.Min(pathFlow, residualCapacity[u, v]);
+            }
+
+            for (v = sink; v != source; v = parent[v])
+            {
+                u = parent[v];
+                residualCapacity[u, v] -= pathFlow;
+                residualCapacity[v, u] += pathFlow;
+            }
+
+            maxFlow += pathFlow;
+        }
+
+        return maxFlow;
+    }
+}
+
+public class Program
+{
+    public static void Main()
+    {
+        MaxFlow maxFlow = new MaxFlow(6);
+        maxFlow.AddEdge(0, 1, 16);
+        maxFlow.AddEdge(0, 2, 13);
+        maxFlow.AddEdge(1, 2, 10);
+        maxFlow.AddEdge(1, 3, 12);
+        maxFlow.AddEdge(2, 1, 4);
+        maxFlow.AddEdge(2, 4, 14);
+        maxFlow.AddEdge(3, 2, 9);
+        maxFlow.AddEdge(3, 5, 20);
+        maxFlow.AddEdge(4, 3, 7);
+        maxFlow.AddEdge(4, 5, 4);
+
+        int source = 0, sink = 5;
+        Console.WriteLine($"The maximum possible flow from source {source} to sink {sink} is {maxFlow.FordFulkerson(source, sink)}");
+    }
+}

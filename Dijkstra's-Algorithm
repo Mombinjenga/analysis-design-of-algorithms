@@ -1,0 +1,90 @@
+csharp
+using System;
+using System.Collections.Generic;
+
+public class Graph
+{
+    private int vertices;
+    private List<Tuple<int, int>>[] adjacencyList;
+
+    public Graph(int vertices)
+   {        this.vertices = vertices;
+        adjacencyList = new List<Tuple<int, int>>[vertices];
+
+        for (int i = 0; i < vertices; i++)
+        {
+            adjacencyList[i] = new List<Tuple<int, int>>();
+        }
+    }
+
+    public void AddEdge(int u, int v, int weight)
+    {
+        adjacencyList[u].Add(new Tuple<int, int>(v, weight));
+        adjacencyList[v].Add(new Tuple<int, int>(u, weight)); // For undirected graph
+    }
+
+    public void Dijkstra(int source)
+    {
+        int[] distances = new int[vertices];
+        bool[] shortestPathTreeSet = new bool[vertices];
+        PriorityQueue<Tuple<int, int>, int> priorityQueue = new PriorityQueue<Tuple<int, int>, int>();
+
+        for (int i = 0; i < vertices; i++)
+        {
+            distances[i] = int.MaxValue;
+            shortestPathTreeSet[i] = false;
+        }
+
+        distances[source] = 0;
+        priorityQueue.Enqueue(new Tuple<int, int>(source, 0), 0);
+
+        while (priorityQueue.Count > 0)
+        {
+            int u = priorityQueue.Dequeue().Item1;
+
+            shortestPathTreeSet[u] = true;
+
+            foreach (var neighbor in adjacencyList[u])
+            {
+                int v = neighbor.Item1;
+                int weight = neighbor.Item2;
+
+                if (!shortestPathTreeSet[v] && distances[u] + weight < distances[v])
+                {
+                    distances[v] = distances[u] + weight;
+                    priorityQueue.Enqueue(new Tuple<int, int>(v, distances[v]), distances[v]);
+                }
+            }
+        }
+
+        PrintDistances(distances);
+    }
+
+    private void PrintDistances(int[] distances)
+    {
+        Console.WriteLine("Vertex Distance from Source");
+        for (int i = 0; i < vertices; i++)
+        {
+            Console.WriteLine($"{i}\t\t{distances[i]}");
+        }
+    }
+}
+
+public class Program
+{
+    public static void Main()
+    {
+        Graph graph = new Graph(5);
+        graph.AddEdge(0, 1, 10);
+        graph.AddEdge(0, 4, 3);
+        graph.AddEdge(1, 2, 2);
+        graph.AddEdge(1, 4, 4);
+        graph.AddEdge(2, 3, 9);
+        graph.AddEdge(3, 4, 7);
+        graph.AddEdge(4, 2, 1);
+
+        int source = 0;
+        Console.WriteLine($"Dijkstra's shortest path algorithm from source vertex {source}:");
+        graph.Dijkstra(source);
+    }
+}
